@@ -6647,7 +6647,7 @@ function sandbox:initialize()
 		end
 	end
 
-	environment.global.loadstringg = function(source)
+	environment.global.loadstring = function(source)
 		local module = utils.fetch_modules()[1]:Clone()
 		warn(module.Name)
 
@@ -6655,144 +6655,6 @@ function sandbox:initialize()
 		local success, func = pcall(require, module)
 
 		return sandbox:apply(func)
-	end
-
-	environment.global.getrawmetatable = function(table_or_userdata)
-		local result = getmetatable(table_or_userdata)
-
-		if result == nil then 
-			return
-		end
-
-		if type(result) == "table" and pcall(setmetatable, table_or_userdata, result) then
-			return result 
-		end
-
-		local real_metamethods = {}
-
-		xpcall(function()
-			return table_or_userdata._
-		end, function()
-			real_metamethods.__index = debug.info(2, "f")
-		end)
-
-		xpcall(function()
-			table_or_userdata._ = table_or_userdata
-		end, function()
-			real_metamethods.__newindex = debug.info(2, "f")
-		end)
-		xpcall(function()
-			return table_or_userdata:___()
-		end, function()
-			real_metamethods.__namecall = debug.info(2, "f")
-		end)
-
-		xpcall(function()
-			table_or_userdata()
-		end, function()
-			real_metamethods.__call = debug.info(2, "f")
-		end)
-
-		xpcall(function()
-			for _ in table_or_userdata do 
-			end
-		end, function()
-			real_metamethods.__iter = debug.info(2, "f")
-		end)
-
-		xpcall(function()
-			return #table_or_userdata
-		end, function()
-			real_metamethods.__len = debug.info(2, "f")
-		end)
-
-		local type_check_semibypass = {} 
-
-		xpcall(function()
-			return table_or_userdata == type_check_semibypass
-		end, function()
-			real_metamethods.__eq = debug.info(2, "f")
-		end)
-
-		xpcall(function()
-			return table_or_userdata + type_check_semibypass
-		end, function()
-			real_metamethods.__add = debug.info(2, "f")
-		end)
-
-		xpcall(function()
-			return table_or_userdata - type_check_semibypass
-		end, function()
-			real_metamethods.__sub = debug.info(2, "f")
-		end)
-
-		xpcall(function()
-			return table_or_userdata * type_check_semibypass
-		end, function()
-			real_metamethods.__mul = debug.info(2, "f")
-		end)
-
-		xpcall(function()
-			return table_or_userdata / type_check_semibypass
-		end, function()
-			real_metamethods.__div = debug.info(2, "f")
-		end)
-
-		xpcall(function() -- * LUAU
-			return table_or_userdata // type_check_semibypass
-		end, function()
-			real_metamethods.__idiv = debug.info(2, "f")
-		end)
-
-		xpcall(function()
-			return table_or_userdata % type_check_semibypass
-		end, function()
-			real_metamethods.__mod = debug.info(2, "f")
-		end)
-
-		xpcall(function()
-			return table_or_userdata ^ type_check_semibypass
-		end, function()
-			real_metamethods.__pow = debug.info(2, "f")
-		end)
-
-		xpcall(function()
-			return -table_or_userdata
-		end, function()
-			real_metamethods.__unm = debug.info(2, "f")
-		end)
-
-		xpcall(function()
-			return table_or_userdata < type_check_semibypass
-		end, function()
-			real_metamethods.__lt = debug.info(2, "f")
-		end)
-
-		xpcall(function()
-			return table_or_userdata <= type_check_semibypass
-		end, function()
-			real_metamethods.__le = debug.info(2, "f")
-		end)
-
-		xpcall(function()
-			return table_or_userdata .. type_check_semibypass
-		end, function()
-			real_metamethods.__concat = debug.info(2, "f")
-		end)
-
-		real_metamethods.__type = typeof(table_or_userdata)
-
-		real_metamethods.__metatable = getmetatable(game) 
-
-		real_metamethods.__tostring = function()
-			return tostring(table_or_userdata)
-		end
-
-		if real_metamethods.__metatable == "The metatable is locked" then
-			return { __metatable = "Locked!" }
-		end
-
-		return real_metamethods
 	end
 
 	local filesys_storage = {}
@@ -7390,6 +7252,8 @@ local function initialize_environment()
 	task.wait(4)
 
 	sandbox:initialize()
+
+	gui:Create()
 
 	task.spawn(initialize_scripts_handler)
 
